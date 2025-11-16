@@ -1,4 +1,3 @@
-# print('Olá Mundo!!!')
 
 # define a função principal
 def main():
