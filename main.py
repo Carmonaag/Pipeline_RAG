@@ -3,13 +3,18 @@ import os
 from rag_pipeline import RAGPipeline
 from config import config
 
+@st.cache_resource
+def get_pipeline():
+    """Cria e retorna uma única instância do RAGPipeline (cached)."""
+    return RAGPipeline()
+
 def main():
     st.set_page_config(page_title="Pipeline RAG", page_icon="🤖")
     st.title("🤖 Pipeline RAG com Streamlit")
 
     # Instancia a RAGPipeline com tratamento de erro inicial
     try:
-        pipeline = RAGPipeline()
+        pipeline = get_pipeline()
     except Exception as e:
         st.error(f"Erro crítico ao iniciar o sistema: {e}")
         st.info("Verifique se o arquivo .env está configurado corretamente.")
