@@ -155,7 +155,7 @@ class VideoLoader:
                 temp_audio_path = temp_audio.name
             
             logger.info(f"Salvando áudio temporário em: {temp_audio_path}")
-            video.audio.write_audiofile(temp_audio_path, logger=None, verbose=False)
+            video.audio.write_audiofile(temp_audio_path, logger=None)
             video.close()
             
             # Transcreve o áudio
