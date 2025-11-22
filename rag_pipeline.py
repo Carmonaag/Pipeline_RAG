@@ -34,6 +34,24 @@ class RAGPipeline:
         
         try:
             self.client = qdrant_client.QdrantClient(path=self.db_path)
+            
+            # Verifica se a coleção existe, se não, cria uma vazia
+            collections = self.client.get_collections().collections
+            collection_names = [col.name for col in collections]
+            
+            if self.collection_name not in collection_names:
+                logger.info(f"Criando coleção '{self.collection_name}'...")
+                # Cria a coleção com um documento dummy para inicializar
+                from langchain.schema import Document
+                dummy_doc = Document(page_content="Inicialização", metadata={})
+                Qdrant.from_documents(
+                    [dummy_doc],
+                    self.embeddings,
+                    path=self.db_path,
+                    collection_name=self.collection_name,
+                )
+                logger.info(f"Coleção '{self.collection_name}' criada com sucesso.")
+            
             self.vector_store = Qdrant(
                 client=self.client,
                 collection_name=self.collection_name,
