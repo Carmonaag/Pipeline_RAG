@@ -88,8 +88,40 @@ class RAGPipeline:
         )
         return rag_chain
 
-    def add_documents(self, file_paths: List[str]):
-        """Carrega, processa e adiciona documentos ao vector store."""
+    def add_documents(self, file_paths: List[str], clear_existing: bool = True):
+        """Carrega, processa e adiciona documentos ao vector store.
+        
+        Args:
+            file_paths: Lista de caminhos dos arquivos a serem processados
+            clear_existing: Se True, remove todos os documentos existentes antes de adicionar novos
+        """
+        # Limpa documentos existentes se solicitado
+        if clear_existing:
+            try:
+                logger.info(f"Limpando documentos existentes da coleção '{self.collection_name}'...")
+                self.client.delete_collection(collection_name=self.collection_name)
+                
+                # Recria a coleção vazia
+                from qdrant_client.models import Distance, VectorParams
+                sample_embedding = self.embeddings.embed_query("test")
+                vector_size = len(sample_embedding)
+                
+                self.client.create_collection(
+                    collection_name=self.collection_name,
+                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
+                )
+                
+                # Recria o vector store
+                self.vector_store = Qdrant(
+                    client=self.client,
+                    collection_name=self.collection_name,
+                    embeddings=self.embeddings,
+                )
+                self.retriever = self.vector_store.as_retriever()
+                logger.info("Coleção limpa e recriada com sucesso.")
+            except Exception as e:
+                logger.warning(f"Erro ao limpar coleção: {e}")
+        
         documents = []
         for file_path in file_paths:
             try:
