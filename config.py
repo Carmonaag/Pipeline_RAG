@@ -16,7 +16,7 @@ class Config:
     DATA_DIR = os.getenv("DATA_DIR", "data")
     
     # Configurações do Modelo
-    MODEL_NAME = os.getenv("MODEL_NAME", "llama3-70b-8192")
+    MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.3-70b-versatile")
     
     # Configurações de Chunking
     CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "1000"))
