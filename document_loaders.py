@@ -136,7 +136,7 @@ class VideoLoader:
         """Extrai áudio do vídeo e transcreve."""
         try:
             import whisper
-            from moviepy.editor import VideoFileClip
+            from moviepy import VideoFileClip  # MoviePy 2.x usa import direto
             import tempfile
             
             # Extrai áudio do vídeo
