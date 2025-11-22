@@ -126,7 +126,15 @@ class RAGPipeline:
         for file_path in file_paths:
             try:
                 logger.info(f"Carregando arquivo: {file_path}")
-                loader = UnstructuredFileLoader(file_path)
+                
+                # Usa DocumentLoaderFactory para selecionar o loader apropriado
+                from document_loaders import DocumentLoaderFactory
+                
+                if not DocumentLoaderFactory.is_supported(file_path):
+                    logger.warning(f"Formato não suportado: {file_path}")
+                    continue
+                
+                loader = DocumentLoaderFactory.get_loader(file_path)
                 loaded_docs = loader.load()
                 documents.extend(loaded_docs)
             except Exception as e:

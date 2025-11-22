@@ -21,10 +21,21 @@ def main():
         return
 
     st.sidebar.title("📂 Upload de Documentos")
+    
+    # Lista de formatos suportados
+    supported_formats = ['txt', 'pdf', 'md', 'docx', 'html', 'csv', 'xlsx', 'xls', 'mp3', 'wav', 'm4a', 'mp4', 'avi', 'mov']
+    
+    st.sidebar.info(f"**Formatos suportados:**\n\n"
+                    f"📄 Documentos: TXT, PDF, MD, DOCX, HTML\n\n"
+                    f"📊 Dados: CSV, XLSX\n\n"
+                    f"🎵 Áudio: MP3, WAV, M4A\n\n"
+                    f"🎬 Vídeo: MP4, AVI, MOV\n\n"
+                    f"⚠️ Limite: {config.MAX_FILE_SIZE_MB}MB por arquivo")
+    
     uploaded_files = st.sidebar.file_uploader(
         "Faça o upload de seus documentos aqui", 
         accept_multiple_files=True,
-        type=['txt', 'pdf', 'md', 'docx', 'html']
+        type=supported_formats
     )
 
     if uploaded_files:
@@ -32,21 +43,30 @@ def main():
         # Garante que o diretório 'data' exista usando a config
         os.makedirs(config.DATA_DIR, exist_ok=True)
         
+        # Valida tamanho dos arquivos
+        max_size_bytes = config.MAX_FILE_SIZE_MB * 1024 * 1024
+        
         for uploaded_file in uploaded_files:
+            # Verifica tamanho do arquivo
+            if uploaded_file.size > max_size_bytes:
+                st.sidebar.warning(f"⚠️ Arquivo {uploaded_file.name} excede o limite de {config.MAX_FILE_SIZE_MB}MB e foi ignorado.")
+                continue
+            
             file_path = os.path.join(config.DATA_DIR, uploaded_file.name)
             with open(file_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
             file_paths.append(file_path)
         
-        st.sidebar.success(f"{len(file_paths)} documentos salvos temporariamente.")
+        if file_paths:
+            st.sidebar.success(f"{len(file_paths)} documento(s) salvo(s) temporariamente.")
 
-        if st.sidebar.button("Processar Documentos"):
-            with st.spinner("Processando documentos e gerando embeddings..."):
-                try:
-                    pipeline.add_documents(file_paths)
-                    st.sidebar.success("✅ Documentos processados e indexados com sucesso!")
-                except Exception as e:
-                    st.sidebar.error(f"Erro ao processar documentos: {e}")
+            if st.sidebar.button("Processar Documentos"):
+                with st.spinner("Processando documentos e gerando embeddings..."):
+                    try:
+                        pipeline.add_documents(file_paths)
+                        st.sidebar.success("✅ Documentos processados e indexados com sucesso!")
+                    except Exception as e:
+                        st.sidebar.error(f"Erro ao processar documentos: {e}")
 
     st.divider()
     st.header("💬 Faça uma pergunta")

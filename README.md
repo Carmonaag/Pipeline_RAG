@@ -4,8 +4,9 @@ Este projeto implementa um sistema de **RAG (Retrieval-Augmented Generation)** r
 
 ## 🚀 Funcionalidades
 
-*   **Upload de Documentos**: Suporte a múltiplos arquivos (TXT, PDF, MD).
+*   **Upload de Múltiplos Formatos**: Suporte a documentos (TXT, PDF, MD, DOCX, HTML), dados estruturados (CSV, XLSX), áudio (MP3, WAV, M4A) e vídeo (MP4, AVI, MOV).
 *   **Processamento Inteligente**: Chunking automático e geração de embeddings eficientes.
+*   **Transcrição de Áudio/Vídeo**: Utiliza Whisper (OpenAI) para transcrever conteúdo de mídia.
 *   **Busca Semântica**: Utiliza Qdrant para armazenamento e recuperação vetorial de alta performance.
 *   **Respostas Contextuais**: Integração com Llama 3 (via Groq) para gerar respostas precisas baseadas no contexto dos documentos.
 *   **Interface Amigável**: UI desenvolvida com Streamlit para fácil interação.
