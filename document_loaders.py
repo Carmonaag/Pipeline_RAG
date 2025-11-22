@@ -143,11 +143,19 @@ class VideoLoader:
             logger.info(f"Extraindo áudio do vídeo: {self.file_path}")
             video = VideoFileClip(self.file_path)
             
+            # Verifica se o vídeo tem áudio
+            if video.audio is None:
+                video.close()
+                error_msg = f"O vídeo {self.file_path} não possui faixa de áudio."
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+            
             # Salva áudio temporariamente
             with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
                 temp_audio_path = temp_audio.name
-                video.audio.write_audiofile(temp_audio_path, logger=None)
             
+            logger.info(f"Salvando áudio temporário em: {temp_audio_path}")
+            video.audio.write_audiofile(temp_audio_path, logger=None, verbose=False)
             video.close()
             
             # Transcreve o áudio
@@ -155,10 +163,14 @@ class VideoLoader:
             model = whisper.load_model(self.model_size)
             
             logger.info(f"Transcrevendo áudio do vídeo...")
-            result = model.transcribe(temp_audio_path)
+            result = model.transcribe(temp_audio_path, language='pt')
             
             # Remove arquivo temporário
-            os.unlink(temp_audio_path)
+            try:
+                os.unlink(temp_audio_path)
+                logger.info(f"Arquivo temporário removido: {temp_audio_path}")
+            except Exception as e:
+                logger.warning(f"Não foi possível remover arquivo temporário {temp_audio_path}: {e}")
             
             metadata = {
                 "source": self.file_path,
@@ -166,13 +178,19 @@ class VideoLoader:
                 "language": result.get("language", "unknown")
             }
             
-            document = Document(page_content=result["text"], metadata=metadata)
+            transcription_text = result["text"].strip()
             
-            logger.info(f"Vídeo transcrito com sucesso: {len(result['text'])} caracteres")
+            if not transcription_text:
+                logger.warning(f"Transcrição do vídeo {self.file_path} resultou em texto vazio.")
+                transcription_text = "[Vídeo sem fala detectada]"
+            
+            document = Document(page_content=transcription_text, metadata=metadata)
+            
+            logger.info(f"Vídeo transcrito com sucesso: {len(transcription_text)} caracteres")
             return [document]
             
         except Exception as e:
-            logger.error(f"Erro ao processar vídeo {self.file_path}: {e}")
+            logger.error(f"Erro ao processar vídeo {self.file_path}: {e}", exc_info=True)
             raise
 
 
