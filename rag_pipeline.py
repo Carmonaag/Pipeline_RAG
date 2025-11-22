@@ -41,14 +41,16 @@ class RAGPipeline:
             
             if self.collection_name not in collection_names:
                 logger.info(f"Criando coleção '{self.collection_name}'...")
-                # Cria a coleção com um documento dummy para inicializar
-                from langchain.schema import Document
-                dummy_doc = Document(page_content="Inicialização", metadata={})
-                Qdrant.from_documents(
-                    [dummy_doc],
-                    self.embeddings,
-                    path=self.db_path,
+                # Cria a coleção diretamente usando o client
+                from qdrant_client.models import Distance, VectorParams
+                
+                # Obtém a dimensão dos embeddings
+                sample_embedding = self.embeddings.embed_query("test")
+                vector_size = len(sample_embedding)
+                
+                self.client.create_collection(
                     collection_name=self.collection_name,
+                    vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE),
                 )
                 logger.info(f"Coleção '{self.collection_name}' criada com sucesso.")
             
